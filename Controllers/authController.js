@@ -75,15 +75,14 @@ const loginUserGetData = async (req, res) => {
 
     try {
         let user = await userModel.findOne({ email });
-
         if (!user || !(await bcrypt.compare(password, user.password))) {
-            return res.status(401).json({ message: 'Invalid email or password' });
+            return res.status(500).json({ message: 'Invalid email or password' });
         }
 
         const token = createToken(user._id, user.role);
+
         res.cookie("accessToken", token);
 
-        // Fetch checkout data
         const checkoutData = await Checkout.aggregate([
             {
                 $unwind: '$products'
@@ -128,7 +127,6 @@ const loginUserGetData = async (req, res) => {
             }
         ]);
 
-        // Send the response with both user and checkout data
         res.status(200).json({
             message: "Success login",
             _id: user._id, name: user.name, email, role: user.role, token: token,
